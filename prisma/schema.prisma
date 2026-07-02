@@ -1,0 +1,83 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id         Int       @id @default(autoincrement())
+  telegramId String    @unique
+  username   String?
+  fullName   String
+  createdAt  DateTime  @default(now())
+  payments   Payment[]
+  slots      Slot[]
+}
+
+model Admin {
+  id         Int      @id @default(autoincrement())
+  telegramId String   @unique
+  addedAt    DateTime @default(now())
+}
+
+model Game {
+  id         Int        @id @default(autoincrement())
+  status     GameStatus @default(WAITING)
+  winnerSlot Int?
+  startedAt  DateTime?
+  finishedAt DateTime?
+  createdAt  DateTime   @default(now())
+  slots      Slot[]
+  payments   Payment[]
+}
+
+model Slot {
+  id        Int        @id @default(autoincrement())
+  number    Int
+  status    SlotStatus @default(AVAILABLE)
+  userId    Int?
+  gameId    Int
+  bookedAt  DateTime?
+  user      User?      @relation(fields: [userId], references: [id])
+  game      Game       @relation(fields: [gameId], references: [id])
+  payment   Payment?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@unique([number, gameId])
+}
+
+model Payment {
+  id        Int           @id @default(autoincrement())
+  userId    Int
+  slotId    Int           @unique
+  gameId    Int
+  fileId    String
+  status    PaymentStatus @default(PENDING)
+  amount    Int
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  user      User          @relation(fields: [userId], references: [id])
+  slot      Slot          @relation(fields: [slotId], references: [id])
+  game      Game          @relation(fields: [gameId], references: [id])
+}
+
+enum SlotStatus {
+  AVAILABLE
+  PENDING
+  CONFIRMED
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum GameStatus {
+  WAITING
+  ACTIVE
+  FINISHED
+}
