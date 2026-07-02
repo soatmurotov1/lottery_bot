@@ -7,6 +7,6 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    url: "postgresql://postgres:root@localhost:5432/lottery_bot_db?schema=public",
+    url: process.env.DATABASE_URL || "",
   },
 });
